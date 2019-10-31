@@ -24,6 +24,7 @@ constexpr char kXfsFsckCommand[] = "xfs_repair ";
 
 constexpr char kFscqFsckCommand[] = ":";
 constexpr char kYxv6FsckCommand[] = ":";
+constexpr char kUsbFsckCommand[] = ":";
 
 constexpr char kExtNewUUIDCommand[] = "tune2fs -U random ";
 constexpr char kBtrfsNewUUIDCommand[] = "yes | btrfstune -u ";
@@ -31,6 +32,7 @@ constexpr char kXfsNewUUIDCommand[] = "xfs_admin -U generate ";
 constexpr char kF2fsNewUUIDCommand[] = ":";
 constexpr char kFscqNewUUIDCommand[] = ":";
 constexpr char kYxv6NewUUIDCommand[] = ":";
+constexpr char kUsbFsNewUUIDCommand[] = ":";
 }
 
 
@@ -52,6 +54,8 @@ FsSpecific* GetFsSpecific(std::string &fs_type) {
     return new FscqFsSpecific();
   } else if (fs_type.compare(Yxv6FsSpecific::kFsType) == 0) {
     return new Yxv6FsSpecific();
+  } else if (fs_type.compare(UsbFsSpecific::kFsType) == 0) {
+    return new UsbFsSpecific();
   }
   return NULL;
 }
@@ -327,6 +331,45 @@ string Yxv6FsSpecific::GetFsTypeString() {
 
 unsigned int Yxv6FsSpecific::GetPostRunDelaySeconds() {
   return Yxv6FsSpecific::kDelaySeconds;
+}
+
+/******************************* UsbFs ******************************************/
+constexpr char UsbFsSpecific::kFsType[];
+
+string UsbFsSpecific::GetMkfsCommand(string &device_path) {
+  return string(kMkfsStart) + "vfat " + device_path;
+
+}
+
+string UsbFsSpecific::GetPostReplayMntOpts() {
+  return string();
+}
+
+string UsbFsSpecific::GetFsckCommand(const string &fs_path) {
+  return string(kUsbFsckCommand) + fs_path;
+}
+
+string UsbFsSpecific::GetNewUUIDCommand(const string &disk_path) {
+  return string(kUsbFsNewUUIDCommand) + disk_path;
+}
+
+FileSystemTestResult::ErrorType UsbFsSpecific::GetFsckReturn(
+    int return_code) {
+  if (return_code == 0) {
+
+    // Will always return 0 when running without the dry-run flag. Things have
+    // been fixed though.
+    return FileSystemTestResult::kFixed;
+  }
+  return FileSystemTestResult::kCheck;
+}
+
+string UsbFsSpecific::GetFsTypeString() {
+ return string(UsbFsSpecific::kFsType);
+}
+
+unsigned int UsbFsSpecific::GetPostRunDelaySeconds() {
+  return UsbFsSpecific::kDelaySeconds;
 }
 
 }  // namespace fs_testing

@@ -750,6 +750,7 @@ int main(int argc, char** argv) {
               }
             }
             const int res = test_harness.test_run(change_fd, checkpoint);
+            cerr << "\tchile process finish test run " << res << endl;
 
             if (checkpoint == 0) {
               close(change_fd);

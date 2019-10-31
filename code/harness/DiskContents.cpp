@@ -141,6 +141,7 @@ DiskContents::~DiskContents() {
 int DiskContents::mount_disk() {
   // Construct and set mount_point
   strcpy(mount_point, "/mnt/");
+  //strcpy(mount_point, "/home/zk/mountdir");
   strcat(mount_point, (disk_path + 5));
   // Create the mount directory with read/write/search permissions for owner and group, 
   // and with read/search permissions for others.
@@ -162,6 +163,15 @@ int DiskContents::mount_disk() {
         string command = "python /home/jayashree/yggdrasil/yav_xv6_main.py -o max_read=4096 -o max_write=4096 -s " + string(mount_point) + " -- --sync  " + string(disk_path)  + " &";
 
         cout << "Command for mount : " << command << endl;
+        system(command.c_str());
+        cout << "Sleeping for 2 sec after mount.." << endl;
+  }else if (string(fs_type).compare("usbfs") == 0) {
+        string mountCommand = "mount -t vfat " + string(disk_path) + " /home/zk/mountdir";
+        cout << mountCommand << endl;
+        system(mountCommand.c_str());
+
+        string command = "/home/zk/fuse-tutorial-2018-02-04/src/bbfs -s -o direct_io -o allow_root -o attr_timeout=0.0 -o nonempty /home/zk/mountdir/ " + string(mount_point) + " &";
+        cout << "Command for usb mount (mount_disk) : " << command << endl;
         system(command.c_str());
         cout << "Sleeping for 2 sec after mount.." << endl;
   } else {
@@ -193,6 +203,17 @@ int DiskContents::unmount_and_delete_mount_point() {
                 system(command.c_str());
                 cout << "Sleeping for 2 sec after unmount" << endl;
                 sleep(2);
+        }
+        else if (string(fs_type).compare("usbfs") == 0) {
+          string command = "sudo fusermount -u " + string(mount_point);
+          cout << "Command for umount : " << command << endl;
+          system(command.c_str());
+
+          string umountCommand = "sudo umount /home/zk/mountdir";
+          cout << "Command for umount : " << umountCommand << endl;
+          system(umountCommand.c_str());
+          cout << "Sleeping for 2 sec after unmount" << endl;
+          sleep(2);
         } else {
 		 string command = "umount ";
   		command += mount_point;

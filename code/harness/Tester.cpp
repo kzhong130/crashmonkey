@@ -200,6 +200,15 @@ int Tester::mount_device(const char* dev, const char* opts) {
         system(command.c_str());
         cout << "Sleeping for 2 sec after mount.." << endl;
 	sleep(2);
+  } else if (fs_type.compare("usbfs") == 0) {
+        string mountCommand = "mount -t vfat " + string(dev) + " /home/zk/mountdir";
+        cout << mountCommand << endl;
+        system(mountCommand.c_str());
+
+        string command = "/home/zk/fuse-tutorial-2018-02-04/src/bbfs -s -o direct_io -o allow_root -o attr_timeout=0.0 -o nonempty /home/zk/mountdir/ "  MNT_MNT_POINT " &";
+        cout << "Command for usb mount (mount_device) : " << command << endl;
+        system(command.c_str());
+        cout << "Sleeping for 2 sec after mount.." << endl;
   } else {
   	if (mount(dev, MNT_MNT_POINT, fs_type.c_str(), 0, (void*) opts) < 0) {
     		disk_mounted = false;
@@ -218,6 +227,17 @@ int Tester::umount_device() {
 		system(command.c_str());
 		cout << "Sleeping for 2 sec after unmount" << endl;
 		sleep(2);
+  }
+  else if (string(fs_type).compare("usbfs") == 0) {
+    string command = "sudo fusermount -u " MNT_MNT_POINT;
+    cout << "Command for umount : " << command << endl;
+    system(command.c_str());
+
+    string umountCommand = "sudo umount /home/zk/mountdir";
+    cout << "Command for umount : " << umountCommand << endl;
+    system(umountCommand.c_str());
+    cout << "Sleeping for 2 sec after unmount" << endl;
+    sleep(2);
 	} else {
     		if (umount(MNT_MNT_POINT) < 0) {
       			disk_mounted = true;
@@ -244,6 +264,15 @@ int Tester::mount_snapshot() {
         system(command.c_str());
         cout << "Sleeping for 2 sec after mount.." << endl;
         sleep(2); 
+ } else if (fs_type.compare("usbfs") == 0) {
+        string mountCommand = "mount -t vfat " + string(SNAPSHOT_PATH) + " /home/zk/mountdir";
+        cout << mountCommand << endl;
+        system(mountCommand.c_str());
+
+        string command = "/home/zk/fuse-tutorial-2018-02-04/src/bbfs -s -o direct_io -o allow_root -o attr_timeout=0.0 -o nonempty /home/zk/mountdir/ " MNT_MNT_POINT " &";
+        cout << "Command for usb mount (mount_snapshot) : " << command << endl;
+        system(command.c_str());
+        cout << "Sleeping for 2 sec after mount.." << endl;
  } else {
   	if (mount(SNAPSHOT_PATH, MNT_MNT_POINT, fs_type.c_str(), 0, NULL) < 0) {
     		return MNT_MNT_ERR;
@@ -259,6 +288,17 @@ int Tester::umount_snapshot() {
 		system(command.c_str());
 		cout << "Sleeping for 2 sec after unmount.." << endl;
 		sleep(2);
+	} else if (fs_type.compare("usbfs") == 0) {
+    string command = "sudo fusermount -u " MNT_MNT_POINT;
+    cout << "Command for umount : " << command << endl;
+    system(command.c_str());
+
+    string umountCommand = "sudo umount /home/zk/mountdir";
+    cout << "Command for umount : " << umountCommand << endl;
+    system(umountCommand.c_str());
+
+    cout << "Sleeping for 2 sec after unmount" << endl;
+    sleep(2);  
 	} else {
     		if (umount(MNT_MNT_POINT) < 0) {
      	 		return MNT_UMNT_ERR;
@@ -308,6 +348,7 @@ int Tester::insert_cow_brd() {
     if (!verbose) {
       command += SILENT;
     }
+    cerr << "Insmod command = " << command << endl;
     if (system(command.c_str()) != 0) {
       cow_brd_fd = -1;
       return WRAPPER_INSERT_ERR;
